@@ -1,162 +1,91 @@
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-800 bg-[#0F0F0F] px-4 py-12 md:px-6 lg:px-8">
+    <footer className="border-t border-border bg-card px-4 py-12 md:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand Column */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-semibold text-white">
-                ⚡ ShipFree
+              <img
+                src="/icon.png"
+                alt="GroceryPicker Logo"
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-xl font-semibold text-foreground">
+                GroceryPicker
               </span>
             </div>
-            <p className="text-sm text-zinc-400">Built for makers, by makers</p>
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted-foreground">Efficient shopping made possible</p>
+            <p className="text-sm text-muted-foreground">
               Copyright © 2025 - All rights reserved
             </p>
-            <div className="inline-flex items-center gap-2 rounded-md border border-zinc-500 bg-zinc-800/50 px-4 py-2 text-xs text-zinc-400">
-              Built with ⚡ ShipFree
+            <div className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-2 text-xs text-muted-foreground">
+              🛒 Smart grocery comparison
             </div>
           </div>
 
-          {/* Links Column */}
+          
+
+          {/* Support Column */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
-              🚀 Links
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              🤝 Support
             </h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <a
-                  href="#wall-of-love"
-                  className="text-zinc-400 hover:text-white"
+                  href="/help"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Wall of love
-                </a>
-              </li>
-              <li>
-                <a href="#pricing" className="text-zinc-400 hover:text-white">
-                  Pricing
+                  Help Center
                 </a>
               </li>
               <li>
                 <a
-                  href="https://x.com/idee8agency"
-                  target="_blank"
-                  className="text-zinc-400 hover:text-white"
+                  href="/contact"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Twitter
+                  Contact Us
                 </a>
               </li>
               <li>
                 <a
-                  href="https://github.com/idee8/shipfree"
-                  target="_blank"
-                  className="text-zinc-400 hover:text-white"
+                  href="/faq"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Github
+                  FAQ
                 </a>
               </li>
               <li>
                 <a
-                  href="https://shipfree.idee8.agency/docs"
-                  target="_blank"
-                  className="text-zinc-400 hover:text-white"
+                  href="/feedback"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Documentation
+                  Feedback
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Legal Column */}
+          {/* Legal & Newsletter Column */}
           <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
-              📜 Legal
-            </h3>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a
-                  href="/tos"
-                  target="_blank"
-                  className="text-zinc-400 hover:text-white"
-                >
-                  Terms of Servise
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/privacy"
-                  target="_blank"
-                  className="text-zinc-400 hover:text-white"
-                >
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/licenses"
-                  target="_blank"
-                  className="text-zinc-400 hover:text-white"
-                >
-                  Licenses
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* By the Creator Column */}
-          <div>
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">
-              🌎 By the Creator of ShipFree
-            </h3>
-            <ul className="space-y-3 text-sm">
-              {/* {["idee8.agency", "React AI", "Code Mentor"].map((item) => ( */}
-              <li>
-                <a
-                  href="https://idee8.agency"
-                  target="_blank"
-                  className="text-zinc-400 hover:text-white"
-                >
-                  Idee8
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://codementor.idee8.agency"
-                  className="text-zinc-400 hover:text-white"
-                  target="_blank"
-                >
-                  Code Mentor
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://reactai.idee8.agency"
-                  className="text-zinc-400 hover:text-white"
-                  target="_blank"
-                >
-                  React AI
-                </a>
-              </li>
-            </ul>
-
             {/* Newsletter Section */}
             <div className="mt-6">
-              <h4 className="mb-3 text-sm font-semibold text-zinc-400">
-                📩 Newsletter for Makers
+              <h4 className="mb-3 text-sm font-semibold text-muted-foreground">
+                📩 Save More, Shop Smarter
               </h4>
-              <p className="mb-4 text-sm text-zinc-500">
-                Get startup tips & resources every week!
+              <p className="mb-4 text-sm text-muted-foreground">
+                Get weekly deals & grocery saving tips!
               </p>
               <form className="flex gap-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="flex-1 rounded-lg bg-zinc-800/50 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none ring-zinc-700 transition-shadow focus:ring-2"
+                  className="flex-1 rounded-lg bg-input px-3 py-2 text-sm text-foreground placeholder-muted-foreground outline-none ring-ring transition-shadow focus:ring-2"
                 />
                 <button
                   type="submit"
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black hover:bg-zinc-200"
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
                   Subscribe
                 </button>
@@ -165,13 +94,13 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-zinc-800 pt-8 text-center text-sm text-zinc-500">
-          © 2025 ShipFree. All Rights Reserved. Cooked for you by{" "}
+        <div className="mt-12 border-t border-border pt-8 text-center text-sm text-muted-foreground">
+          © 2025 GroceryPicker. All Rights Reserved. Built by{" "}
           <a
-            href="https://idee8.agency"
-            className="text-zinc-400 hover:text-white"
+            href="https://github.com/haojun-mah"
+            className="text-primary hover:text-primary/80 transition-colors"
           >
-            idee8.agency
+            Hao Jun Mah
           </a>
           .
         </div>

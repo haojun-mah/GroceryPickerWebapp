@@ -8,24 +8,20 @@ import MakerIntro from "@/app/(site)/MakerIntro";
 import Navbar from "@/app/(site)/Navbar";
 import PricingSection from "@/app/(site)/pricing";
 import TestimonialsPage from "@/app/(site)/Testimonials";
+import ProblemSection from "@/app/(site)/ProblemSection";
+import HowItWorksSection from "@/app/(site)/HowItWorksSection";
 
-// required by Nextra
 export const metadata: Metadata = {
-  title: "ShipFree",
+  title: "GroceryPicker - Smart Grocery Shopping Made Easy",
 };
 
 export default function Home() {
   return (
-    <div className="bg-[#212121]">
-      <Navbar />
+    <div className="bg-background">
       <HeroSection />
-      <FeaturedTime />
-      <MakerIntro />
-      <PricingSection />
-      <FAQ />
-      <TestimonialsPage />
-      <CTA />
-      <Footer />
+      <ProblemSection />
+      <HowItWorksSection />
+      <Footer/>
     </div>
   );
 }

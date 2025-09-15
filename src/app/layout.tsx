@@ -3,6 +3,8 @@ import { Bricolage_Grotesque } from "next/font/google";
 import "./globals.css";
 import type React from "react"; // Import React
 import { cn } from "@/lib/utils";
+import Navbar from "./(site)/Navbar";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -10,20 +12,15 @@ const bricolageGrotesque = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "ShipFree",
+  title: "GroceryPicker",
   description:
-    "Open Source Alternative to ShipFast - Launch your startup in days Not in weeks",
+    "Efficient Shopping made possible",
   keywords: [
-    "saas",
-    "boilerplate",
-    "open source",
-    "free",
-    "open source shipfast",
-    "shipfree",
-    "idee8",
-    "made by idee8",
-    "free boilerplate",
-    "github",
+    "GroceryPicker",
+    "shopping",
+    "grocery",
+    "nus grocery picker",
+    "hao jun mah"
   ],
 };
 
@@ -33,9 +30,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={cn(bricolageGrotesque.className, "antialiased")}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn(bricolageGrotesque.className, "antialiased bg-gradient-to-b from-background via-muted/20 to-background min-h-screen")}>
+        <ThemeProvider defaultTheme="system" storageKey="grocerypicker-theme">
+          <Navbar/>
+          <main className="pt-16">
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

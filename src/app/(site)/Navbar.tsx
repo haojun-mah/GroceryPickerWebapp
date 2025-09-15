@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Zap, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getGitHubStars } from "@/utils/github";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Navbar() {
   const [stars, setStars] = useState<number | null>(null);
@@ -26,47 +27,48 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 z-50 w-full bg-[#212121]">
+    <nav className="fixed top-0 z-50 w-full bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2">
             <Zap
               className="h-10 w-10"
               fill="#FFBE18"
-              stroke="black"
+              stroke="currentColor"
               strokeWidth={1.4}
             />
-            <span className="text-lg font-semibold text-white">ShipFree</span>
+            <span className="text-lg font-semibold text-foreground">GroceryPicker</span>
           </Link>
         </div>
 
         <div className="hidden items-center gap-8 md:flex">
           <Link
             href="#pricing"
-            className="text-base text-white/90 transition hover:text-white"
+            className="text-base text-muted-foreground transition hover:text-foreground"
           >
             Pricing
           </Link>
           <Link
             href="#faq"
-            className="text-base text-white/90 transition hover:text-white"
+            className="text-base text-muted-foreground transition hover:text-foreground"
           >
             FAQ
           </Link>
           <Link
             href="#wall-of-love"
-            className="text-base text-white/90 transition hover:text-white"
+            className="text-base text-muted-foreground transition hover:text-foreground"
           >
             Wall of love
           </Link>
         </div>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <a
             href={`https://github.com/${repo}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-md bg-[#2C2C2C] px-4 py-2 text-sm text-white/90 transition hover:bg-[#3C3C3C]"
+            className="flex items-center gap-2 rounded-md bg-secondary px-4 py-2 text-sm text-secondary-foreground transition hover:bg-secondary/80"
           >
             <svg
               viewBox="0 0 16 16"
@@ -78,18 +80,19 @@ export default function Navbar() {
             </svg>
             Star us on GitHub
             {stars !== null && (
-              <span className="flex h-5 items-center rounded-full bg-white/10 px-2 font-medium">
+              <span className="flex h-5 items-center rounded-full bg-muted px-2 font-medium text-muted-foreground">
                 {formatStars(stars)}
               </span>
             )}
           </a>
         </div>
 
-        <div className="flex md:hidden">
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
           <button
             type="button"
             onClick={toggleMenu}
-            className="inline-flex items-center justify-center rounded-md p-2 text-white/90 hover:text-white"
+            className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground"
           >
             <span className="sr-only">Toggle menu</span>
             {isMenuOpen ? (
@@ -115,32 +118,32 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden border-t border-border bg-background">
           <div className="space-y-1 px-2 pb-3 pt-2">
             <Link
               href="#pricing"
-              className="block rounded-md px-3 py-2 text-base font-medium text-white/90 hover:bg-[#3C3C3C] hover:text-white"
+              className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
               onClick={toggleMenu}
             >
               Pricing
             </Link>
             <Link
               href="#faq"
-              className="block rounded-md px-3 py-2 text-base font-medium text-white/90 hover:bg-[#3C3C3C] hover:text-white"
+              className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
               onClick={toggleMenu}
             >
               FAQ
             </Link>
             <Link
               href="#wall-of-love"
-              className="block rounded-md px-3 py-2 text-base font-medium text-white/90 hover:bg-[#3C3C3C] hover:text-white"
+              className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
               onClick={toggleMenu}
             >
               Wall of love
             </Link>
             <Link
               href="/docs"
-              className="block rounded-md px-3 py-2 text-base font-medium text-white/90 hover:bg-[#3C3C3C] hover:text-white"
+              className="block rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
               onClick={toggleMenu}
             >
               Docs
@@ -149,7 +152,7 @@ export default function Navbar() {
               href={`https://github.com/${repo}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-white/90 hover:bg-[#3C3C3C] hover:text-white"
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
               onClick={toggleMenu}
             >
               <svg
@@ -162,7 +165,7 @@ export default function Navbar() {
               </svg>
               Star us on GitHub
               {stars !== null && (
-                <span className="flex h-5 items-center rounded-full bg-white/10 px-2 font-medium">
+                <span className="flex h-5 items-center rounded-full bg-muted px-2 font-medium text-muted-foreground">
                   {formatStars(stars)}
                 </span>
               )}
