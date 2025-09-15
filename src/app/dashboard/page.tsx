@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import SearchBar from "@/app/dashboard/SearchBar";
 import SearchResults, { GroceryItem } from "@/app/dashboard/SearchResults";
 import ShoppingCartComponent, { CartItem } from "@/app/dashboard/ShoppingCart";
@@ -8,32 +8,9 @@ import ShoppingCartComponent, { CartItem } from "@/app/dashboard/ShoppingCart";
 const GroceryPickerDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [searchResults, setSearchResults] = useState<GroceryItem[]>([
-    {
-      id: "1",
-      name: "Organic Bananas",
-      price: 2.99,
-      category: "Per lb • Fresh Produce",
-      store: "Fresh Market",
-      inStock: true,
-    },
-    {
-      id: "2", 
-      name: "Whole Milk",
-      price: 3.49,
-      category: "1 Gallon • Dairy",
-      store: "SuperMart",
-      inStock: true,
-    },
-    {
-      id: "3",
-      name: "Whole Wheat Bread",
-      price: 2.79,
-      category: "24oz Loaf • Bakery", 
-      store: "Corner Store",
-      inStock: true,
-    },
-  ]);
+  const [searchResults, setSearchResults] = useState<GroceryItem[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [searchType, setSearchType] = useState<'suggestions' | 'search' | 'initial'>('initial');
 
   const addToCart = (item: GroceryItem) => {
     setCartItems(prev => {
@@ -49,9 +26,108 @@ const GroceryPickerDashboard = () => {
     });
   };
 
-  const handleSearch = () => {
-    // Mock search functionality - in real app this would call an API
-    console.log("Searching for:", searchQuery);
+  // Debounce function to limit API calls
+  const debounce = useCallback((func: Function, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }, []);
+
+  // Function to fetch suggestions and display them in search results
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setSearchResults([]);
+      setSearchType('initial');
+      return;
+    }
+
+    setIsLoadingSuggestions(true);
+    setSearchType('suggestions');
+    
+    try {
+      const response = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}&limit=10`);
+      if (response.ok) {
+        const suggestions = await response.json();
+        
+        // Convert suggestions to GroceryItem format
+        const formattedResults: GroceryItem[] = suggestions.map((suggestion: any) => ({
+          id: suggestion.id,
+          name: suggestion.name,
+          price: suggestion.price,
+          category: suggestion.category,
+          store: suggestion.store,
+          inStock: true,
+        }));
+        
+        setSearchResults(formattedResults);
+      } else {
+        console.error('Failed to fetch suggestions');
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setSearchResults([]);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
+  }, []);
+
+  // Debounced version of fetchSuggestions
+  const debouncedFetchSuggestions = useCallback(
+    debounce(fetchSuggestions, 300),
+    [fetchSuggestions]
+  );
+
+  // Effect to fetch suggestions when searchQuery changes
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      debouncedFetchSuggestions(searchQuery);
+    } else {
+      setSearchResults([]);
+      setSearchType('initial');
+    }
+  }, [searchQuery, debouncedFetchSuggestions]);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    console.log("Performing full search for:", searchQuery);
+    setSearchType('search');
+    setIsLoadingSuggestions(true);
+    
+    try {
+      const response = await fetch(`/api/grocerysearch?q=${encodeURIComponent(searchQuery)}&limit=15`);
+      if (response.ok) {
+        const searchData = await response.json();
+        
+        // Convert search results to GroceryItem format
+        const formattedResults: GroceryItem[] = searchData.results.map((result: any) => ({
+          id: result.id,
+          name: result.name,
+          price: result.price,
+          category: result.category,
+          store: result.store,
+          inStock: result.inStock,
+        }));
+        
+        setSearchResults(formattedResults);
+        console.log(`Search completed with ${formattedResults.length} results using ${searchData.searchMethod} method`);
+      } else {
+        console.error('Search failed');
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error performing search:', error);
+      setSearchResults([]);
+    } finally {
+      setIsLoadingSuggestions(false);
+    }
   };
 
   const handleCheckout = () => {
@@ -87,6 +163,9 @@ const GroceryPickerDashboard = () => {
             <SearchResults 
               searchResults={searchResults}
               onAddToCart={addToCart}
+              isLoading={isLoadingSuggestions}
+              searchType={searchType}
+              searchQuery={searchQuery}
             />
           </div>
           {/* Spacer for cart on desktop */}
