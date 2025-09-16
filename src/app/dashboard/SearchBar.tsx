@@ -60,18 +60,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
           Search
         </button>
       </div>
-      
-      {/* AI Features */}
-      <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Bot className="w-4 h-4 text-primary" />
-          <span>AI-powered grocery search</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-success" />
-          <span>Real-time pricing</span>
-        </div>
-      </div>
     </div>
   );
 };

@@ -21,7 +21,7 @@ interface ProductRow {
 interface GroceryItem {
   id: string;
   name: string;
-  price: number;
+  price: string;
   store: string;
   quantity: string;
   description?: string;
@@ -35,7 +35,7 @@ function convertToGroceryItem(product: ProductRow): GroceryItem {
   return {
     id: product.product_id,
     name: product.name,
-    price: parseFloat(product.price) || 0,
+    price: product.price || 'Price not available', // Keep as string
     store: product.supermarket,
     quantity: product.quantity,
     description: product.promotion_description,
@@ -50,7 +50,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "1",
     name: "Red Apples",
-    price: 2.99,
+    price: "2.99",
     quantity: "Per lb",
     store: "Fresh Market",
     description: "Fresh crisp red apples, perfect for snacking or baking.",
@@ -59,7 +59,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "2",
     name: "Organic Bananas",
-    price: 2.99,
+    price: "2.99",
     quantity: "Per lb",
     store: "Fresh Market",
     description: "Fresh organic bananas, perfect for smoothies, baking, or snacking.",
@@ -68,7 +68,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "3", 
     name: "Whole Milk",
-    price: 3.49,
+    price: "3.49",
     quantity: "1 Gallon",
     store: "SuperMart",
     description: "Fresh whole milk from local farms.",
@@ -77,7 +77,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "4",
     name: "Whole Wheat Bread",
-    price: 2.79,
+    price: "2.79",
     quantity: "24oz Loaf",
     store: "Corner Store",
     description: "Freshly baked whole wheat bread.",
@@ -86,7 +86,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "5",
     name: "Greek Yogurt",
-    price: 4.99,
+    price: "4.99",
     quantity: "32oz",
     store: "Fresh Market",
     description: "Creamy Greek yogurt with probiotics.",
@@ -95,7 +95,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "6",
     name: "Avocados",
-    price: 1.99,
+    price: "1.99",
     quantity: "Each",
     store: "SuperMart",
     description: "Ripe avocados perfect for guacamole and toast.",
@@ -104,7 +104,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "7",
     name: "Chicken Breast",
-    price: 8.99,
+    price: "8.99",
     quantity: "Per lb",
     store: "Fresh Market",
     description: "Fresh boneless chicken breast.",
@@ -113,7 +113,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "8",
     name: "Green Apples",
-    price: 3.29,
+    price: "3.29",
     quantity: "Per lb",
     store: "SuperMart",
     description: "Tart green apples, great for cooking and baking.",
@@ -122,7 +122,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "9",
     name: "Orange Juice",
-    price: 4.29,
+    price: "4.29",
     quantity: "64oz",
     store: "Corner Store",
     description: "Fresh squeezed orange juice with pulp.",
@@ -131,7 +131,7 @@ const mockGroceryData: GroceryItem[] = [
   {
     id: "10",
     name: "Pasta Sauce",
-    price: 2.49,
+    price: "2.49",
     quantity: "24oz",
     store: "SuperMart",
     description: "Traditional marinara pasta sauce with herbs.",
@@ -187,11 +187,12 @@ export async function GET(request: NextRequest) {
       // Step 3: Perform vector similarity search in Supabase
       console.log('[SEARCH] Step 3: Performing vector similarity search');
       const { data: semanticResults, error: semanticError } = await supabase.rpc(
-        'match_products_by_embedding',
+        'match_products_by_embedding_with_filter',
         {
           query_embedding: queryEmbedding,
           match_threshold: 0.5,
           match_count: limit, // Get more than needed for deduplication
+          exclude_supermarkets: supermarket ? null : null // Could filter here if needed
         }
       );
 

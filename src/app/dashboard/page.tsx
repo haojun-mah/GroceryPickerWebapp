@@ -60,8 +60,13 @@ const GroceryPickerDashboard = () => {
           id: suggestion.id,
           name: suggestion.name,
           price: suggestion.price,
-          category: suggestion.category,
           store: suggestion.store,
+          quantity: suggestion.quantity || '',
+          description: suggestion.promotion,
+          imageUrl: suggestion.image_url,
+          productUrl: suggestion.product_url,
+          promotion: suggestion.promotion,
+          category: suggestion.category,
           inStock: true,
         }));
         
@@ -111,9 +116,14 @@ const GroceryPickerDashboard = () => {
           id: result.id,
           name: result.name,
           price: result.price,
-          category: result.category,
           store: result.store,
-          inStock: result.inStock,
+          quantity: result.quantity || '',
+          description: result.description,
+          imageUrl: result.imageUrl,
+          productUrl: result.productUrl,
+          promotion: result.promotion,
+          category: result.category,
+          inStock: result.inStock !== false,
         }));
         
         setSearchResults(formattedResults);

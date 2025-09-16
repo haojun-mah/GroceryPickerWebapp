@@ -1,4 +1,6 @@
 
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Play, ShoppingCart } from "lucide-react";
@@ -36,11 +38,10 @@ const HeroSection = () => {
 
             <div className="px-8 pt-4 sm:items-center sm:justify-center sm:px-0 sm:space-x-5 sm:flex mt-9">
               <RainbowButton
+                  asChild
                   className="inline-flex items-center justify-center w-full px-12 py-5 text-3xl font-bold text-primary-foreground transition-all duration-200 bg-primary border-2 border-transparent sm:w-auto rounded-2xl hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring min-w-[280px] h-16"
               >
-                <Link
-                  href="/dashboard"
-                >
+                <Link href="/dashboard">
                   Start Smart Shopping
                 </Link>
               </RainbowButton>

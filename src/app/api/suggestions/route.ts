@@ -21,10 +21,12 @@ interface ProductRow {
 interface Suggestion {
   id: string;
   name: string;
-  price: number;
+  price: string;
   store: string;
   quantity: string;
   promotion?: string;
+  image_url?: string;
+  product_url?: string;
 }
 
 // Convert database row to suggestion format
@@ -32,10 +34,12 @@ function convertToSuggestion(product: ProductRow): Suggestion {
   return {
     id: product.product_id,
     name: product.name,
-    price: parseFloat(product.price) || 0, // Convert string price to number
+    price: product.price || 'Price not available', // Keep as string
     store: product.supermarket,
     quantity: product.quantity,
     promotion: product.promotion_description,
+    image_url: product.image_url,
+    product_url: product.product_url,
   };
 }
 
@@ -44,39 +48,47 @@ const mockSuggestions = [
   {
     id: "1",
     name: "Red Apples",
-    price: 2.99,
+    price: "2.99",
     store: "Fresh Market",
     quantity: "Per lb",
-    promotion: "Fresh Produce"
+    promotion: "Fresh Produce",
+    image_url: null,
+    product_url: null
   },
   {
     id: "2",
-    name: "Apple Juice",
-    price: 3.49,
+    name: "Bananas",
+    price: "1.99",
     store: "SuperMart",
-    quantity: "64oz",
-    promotion: "Beverages"
+    quantity: "Per lb",
+    promotion: "Fresh Daily",
+    image_url: null,
+    product_url: null
   },
   {
     id: "3",
-    name: "Apple Pie",
-    price: 8.99,
+    name: "Whole Milk",
+    price: "3.49",
     store: "Corner Store",
-    quantity: "9inch",
-    promotion: "Bakery Special"
+    quantity: "1 Gallon",
+    promotion: "Local Dairy",
+    image_url: null,
+    product_url: null
   },
   {
     id: "4",
     name: "Green Apples",
-    price: 3.25,
+    price: "3.25",
     store: "Fresh Market",
     quantity: "Per lb",
-    promotion: "Fresh Produce"
+    promotion: "Fresh Produce",
+    image_url: null,
+    product_url: null
   },
   {
     id: "5",
     name: "Organic Bananas",
-    price: 2.99,
+    price: "2.99",
     store: "Fresh Market",
     quantity: "Per lb",
     promotion: "Organic Special"
@@ -84,7 +96,7 @@ const mockSuggestions = [
   {
     id: "6", 
     name: "Whole Milk",
-    price: 3.49,
+    price: "3.49",
     store: "SuperMart",
     quantity: "1 Gallon",
     promotion: "Dairy"
@@ -92,7 +104,7 @@ const mockSuggestions = [
   {
     id: "7",
     name: "Orange Juice",
-    price: 4.29,
+    price: "4.29",
     store: "Corner Store",
     quantity: "64oz",
     promotion: "Fresh Squeezed"
@@ -100,7 +112,7 @@ const mockSuggestions = [
   {
     id: "8",
     name: "Pasta Sauce",
-    price: 2.49,
+    price: "2.49",
     store: "SuperMart",
     quantity: "24oz",
     promotion: "Italian Style"
@@ -111,7 +123,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
-    const limit = parseInt(searchParams.get('limit') || '5');
+    const limit = parseInt(searchParams.get('limit') || '10'); // Increased default to 10
 
     console.log(`[SUGGESTIONS] Starting suggestions request for: "${query}", limit: ${limit}`);
 
@@ -133,13 +145,13 @@ export async function GET(request: NextRequest) {
       
       const { data: textResults, error: textError } = await supabase
         .from('products')
-        .select('product_id, name, price, supermarket, quantity, promotion_description')
+        .select('product_id, name, price, supermarket, quantity, promotion_description, image_url, product_url')
         .or(
           searchTerms.map(term => 
             `name.ilike.%${term}%`
           ).join(',')
         )
-        .limit(Math.min(limit, 10)); // Limit for performance
+        .limit(Math.min(limit * 2, 20)); // Get more for better variety
         
       if (textError) {
         console.error('[SUGGESTIONS] Text search error:', textError);
@@ -178,11 +190,12 @@ export async function GET(request: NextRequest) {
           console.log(`[SUGGESTIONS] Embedding generated successfully, length: ${queryEmbedding.length}`);
           
           const { data: semanticResults, error: semanticError } = await supabase.rpc(
-            'match_products_by_embedding',
+            'match_products_by_embedding_with_filter',
             {
               query_embedding: queryEmbedding,
-              match_threshold: 0.6, // Higher threshold for suggestions
-              match_count: limit - suggestions.length + 2, // Get a few extra for deduplication
+              match_threshold: 0.5, // Lower threshold to get more results
+              match_count: (limit - suggestions.length) * 2, // Get more for deduplication
+              exclude_supermarkets: null // No filtering for suggestions
             }
           );
 
@@ -212,7 +225,12 @@ export async function GET(request: NextRequest) {
       }
 
       console.log(`[SUGGESTIONS] Final result: returning ${suggestions.length} suggestions from database`);
-      console.log('[SUGGESTIONS] Final suggestions:', suggestions.map(s => `${s.name} ($${s.price})`));
+      console.log('[SUGGESTIONS] Final suggestions:', suggestions.map(s => ({ 
+        name: s.name, 
+        store: s.store, 
+        price: s.price,
+        hasImage: !!s.image_url 
+      })));
       return NextResponse.json(suggestions);
 
     } catch (dbError) {

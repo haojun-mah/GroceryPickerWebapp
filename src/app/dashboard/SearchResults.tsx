@@ -1,16 +1,20 @@
 "use client";
 
 import React from "react";
-import { Plus } from "lucide-react";
+import { Plus, ExternalLink } from "lucide-react";
 
 export interface GroceryItem {
   id: string;
   name: string;
-  price: number;
-  category: string;
+  price: string;
   store: string;
-  inStock: boolean;
-  image?: string;
+  quantity: string;
+  description?: string;
+  imageUrl?: string;
+  productUrl?: string;
+  promotion?: string;
+  category?: string;
+  inStock?: boolean;
 }
 
 interface SearchResultsProps {
@@ -33,6 +37,26 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     if (name.includes('Milk')) return '🥛';
     if (name.includes('Bread')) return '🍞';
     return '🛒';
+  };
+
+  const formatPrice = (price: string): string => {
+    if (!price || price === 'Price not available') {
+      return 'Price N/A';
+    }
+    
+    // If price already has currency symbol, return as is
+    if (price.includes('$') || price.includes('€') || price.includes('£')) {
+      return price;
+    }
+    
+    // Try to parse as number and format as currency
+    const numPrice = parseFloat(price);
+    if (!isNaN(numPrice) && numPrice > 0) {
+      return `$${numPrice.toFixed(2)}`;
+    }
+    
+    // If it's not a number, return the original price string
+    return price;
   };
 
   // Get header text based on search type
@@ -90,34 +114,97 @@ const SearchResults: React.FC<SearchResultsProps> = ({
         {/* Results */}
         {searchResults.map((item) => (
           <div key={item.id} className="flex items-center gap-4 p-4 bg-background rounded-lg border border-border hover:border-primary/30 transition-colors">
-            {/* Product Image Placeholder */}
-            <div className="w-16 h-16 bg-muted/30 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">
-                {getProductEmoji(item.name)}
-              </span>
+            {/* Product Image */}
+            <div className="w-16 h-16 bg-muted/30 rounded-lg overflow-hidden flex-shrink-0 relative">
+              {item.imageUrl ? (
+                <>
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-full h-full object-cover transition-opacity"
+                    loading="lazy"
+                    onError={(e) => {
+                      // Fallback to emoji if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      target.style.display = 'none';
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div className="w-full h-full flex items-center justify-center text-2xl absolute inset-0 bg-muted/30" style={{ display: 'none' }}>
+                    {getProductEmoji(item.name)}
+                  </div>
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-2xl">
+                    {getProductEmoji(item.name)}
+                  </span>
+                </div>
+              )}
             </div>
             
             {/* Product Info */}
-            <div className="flex-1">
-              <h3 className="font-medium text-foreground">{item.name}</h3>
-              <p className="text-sm text-muted-foreground">{item.category}</p>
-              {item.inStock && (
+            <div className="flex-1 min-w-0">
+              {/* Clickable Product Name */}
+              {item.productUrl ? (
+                <a
+                  href={item.productUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1 group"
+                  title={`View ${item.name} on external site`}
+                >
+                  <span className="truncate">{item.name}</span>
+                  <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+                </a>
+              ) : (
+                <h3 className="font-medium text-foreground truncate" title={item.name}>
+                  {item.name}
+                </h3>
+              )}
+              
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-sm text-muted-foreground">{item.store}</p>
+                {item.quantity && (
+                  <>
+                    <span className="text-muted-foreground">•</span>
+                    <p className="text-sm text-muted-foreground">{item.quantity}</p>
+                  </>
+                )}
+              </div>
+              
+              {item.promotion && (
+                <div className="mt-1">
+                  <span className="inline-block text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 px-2 py-1 rounded-full">
+                    {item.promotion}
+                  </span>
+                </div>
+              )}
+              
+              {item.inStock !== false && (
                 <span className="inline-flex items-center gap-1 text-xs text-success mt-1">
                   <div className="w-2 h-2 bg-success rounded-full"></div>
-                  In Stock
+                  Available
                 </span>
               )}
             </div>
             
-            {/* Price */}
-            <div className="text-right">
-              <div className="text-lg font-bold text-foreground">${item.price.toFixed(2)}</div>
+            {/* Price and Store Info */}
+            <div className="text-right flex-shrink-0">
+              <div className="text-lg font-bold text-foreground">
+                {formatPrice(item.price)}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                at {item.store}
+              </div>
             </div>
             
             {/* Add Button */}
             <button
               onClick={() => onAddToCart(item)}
-              className="px-4 py-2 bg-success text-success-foreground rounded-lg hover:bg-success/90 transition-colors font-medium flex items-center gap-2"
+              className="px-4 py-2 bg-success text-success-foreground rounded-lg hover:bg-success/90 transition-colors font-medium flex items-center gap-2 flex-shrink-0"
+              title={`Add ${item.name} to cart`}
             >
               <Plus className="w-4 h-4" />
               Add
