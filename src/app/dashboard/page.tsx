@@ -22,8 +22,56 @@ const GroceryPickerDashboard = () => {
             : cartItem
         );
       }
-      return [...prev, { ...item, quantity: 1 }];
+      // Convert GroceryItem to CartItem, ensuring required fields are present
+      const cartItem: CartItem = {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        category: item.category || 'Other',
+        store: item.store,
+        inStock: item.inStock ?? true,
+        quantity: 1,
+        image: item.imageUrl
+      };
+      return [...prev, cartItem];
     });
+  };
+
+  const removeFromCart = (itemId: string) => {
+    setCartItems(prev => {
+      const existing = prev.find(cartItem => cartItem.id === itemId);
+      if (existing && existing.quantity > 1) {
+        // Decrease quantity if more than 1
+        return prev.map(cartItem =>
+          cartItem.id === itemId
+            ? { ...cartItem, quantity: cartItem.quantity - 1 }
+            : cartItem
+        );
+      } else {
+        // Remove item completely if quantity is 1 or less
+        return prev.filter(cartItem => cartItem.id !== itemId);
+      }
+    });
+  };
+
+  const comparePrices = async (item: GroceryItem) => {
+    try {
+      console.log('🔍 Starting price comparison optimization for:', item.name);
+      
+      // TODO: Implement optimization algorithm
+      // This would call an API endpoint that:
+      // 1. Searches for the same or similar products across all stores
+      // 2. Runs optimization to find the best price/store combinations
+      // 3. Considers factors like distance, stock availability, bulk discounts
+      // 4. Returns optimized shopping recommendations
+      
+      // For now, show a placeholder alert
+      alert(`🔍 Price Optimization\n\nAnalyzing best deals for: ${item.name}\n\nThis feature will:\n• Compare prices across all stores\n• Factor in distance and availability\n• Suggest optimal shopping routes\n• Find bulk discount opportunities\n\n(Implementation coming soon!)`);
+      
+    } catch (error) {
+      console.error('Price comparison failed:', error);
+      alert('Failed to compare prices. Please try again.');
+    }
   };
 
   // Debounce function to limit API calls
@@ -148,6 +196,7 @@ const GroceryPickerDashboard = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Fixed Shopping Cart - Within Container Width */}
+            {/* Fixed Shopping Cart - Within Container Width */}
       <div className="fixed top-35 right-0 z-50 w-80 hidden lg:block" style={{
         right: `max(1rem, calc((100vw - 72rem) / 2))`,
         transform: 'translateX(calc(-100% + 20rem))'
@@ -155,6 +204,7 @@ const GroceryPickerDashboard = () => {
         <ShoppingCartComponent 
           cartItems={cartItems}
           onCheckout={handleCheckout}
+          onRemoveItem={removeFromCart}
         />
       </div>
 
@@ -163,6 +213,7 @@ const GroceryPickerDashboard = () => {
         <ShoppingCartComponent 
           cartItems={cartItems}
           onCheckout={handleCheckout}
+          onRemoveItem={removeFromCart}
         />
       </div>
 
@@ -173,6 +224,7 @@ const GroceryPickerDashboard = () => {
             <SearchResults 
               searchResults={searchResults}
               onAddToCart={addToCart}
+              onComparePrices={comparePrices}
               isLoading={isLoadingSuggestions}
               searchType={searchType}
               searchQuery={searchQuery}

@@ -43,6 +43,48 @@ function convertToSuggestion(product: ProductRow): Suggestion {
   };
 }
 
+// Distribute results evenly across different supermarkets
+function distributeResultsBySupermarket(products: ProductRow[], targetLimit: number): Record<string, ProductRow[]> {
+  // Group products by supermarket
+  const groupedByStore: Record<string, ProductRow[]> = {};
+  
+  for (const product of products) {
+    const store = product.supermarket;
+    if (!groupedByStore[store]) {
+      groupedByStore[store] = [];
+    }
+    groupedByStore[store].push(product);
+  }
+  
+  const storeNames = Object.keys(groupedByStore);
+  const numStores = storeNames.length;
+  
+  console.log(`[DISTRIBUTION] Found ${numStores} supermarkets: ${storeNames.join(', ')}`);
+  
+  if (numStores === 0) return {};
+  
+  // Calculate how many items each store should contribute
+  const baseItemsPerStore = Math.floor(targetLimit / numStores);
+  const remainderItems = targetLimit % numStores;
+  
+  const distributedResults: Record<string, ProductRow[]> = {};
+  
+  for (let i = 0; i < storeNames.length; i++) {
+    const storeName = storeNames[i];
+    const storeProducts = groupedByStore[storeName];
+    
+    // Give some stores one extra item to handle remainder
+    const itemsForThisStore = baseItemsPerStore + (i < remainderItems ? 1 : 0);
+    
+    // Take up to the calculated number of items for this store
+    distributedResults[storeName] = storeProducts.slice(0, itemsForThisStore);
+    
+    console.log(`[DISTRIBUTION] ${storeName}: taking ${distributedResults[storeName].length} out of ${storeProducts.length} available products`);
+  }
+  
+  return distributedResults;
+}
+
 // Mock suggestions data for fallback
 const mockSuggestions = [
   {
@@ -160,21 +202,27 @@ export async function GET(request: NextRequest) {
         console.log(`[SUGGESTIONS] Text search returned ${textResults?.length || 0} results`);
       }
 
-      console.log('[SUGGESTIONS] Step 3: Processing text search results');
+      console.log('[SUGGESTIONS] Step 3: Processing text search results with supermarket distribution');
       let suggestions: Suggestion[] = [];
       const seenProductIds = new Set<string>();
 
-      // Add regex matches first
+      // Distribute results across different supermarkets
       if (textResults && !textError) {
         console.log(`[SUGGESTIONS] Processing ${textResults.length} text results`);
-        for (const product of textResults as ProductRow[]) {
-          if (suggestions.length >= limit) break;
-          if (!seenProductIds.has(product.product_id)) {
-            seenProductIds.add(product.product_id);
-            suggestions.push(convertToSuggestion(product));
+        const distributedResults = distributeResultsBySupermarket(textResults as ProductRow[], limit);
+        console.log(`[SUGGESTIONS] Distributed results across ${Object.keys(distributedResults).length} supermarkets`);
+        
+        for (const [supermarket, products] of Object.entries(distributedResults)) {
+          console.log(`[SUGGESTIONS] Adding ${products.length} products from ${supermarket}`);
+          for (const product of products) {
+            if (suggestions.length >= limit) break;
+            if (!seenProductIds.has(product.product_id)) {
+              seenProductIds.add(product.product_id);
+              suggestions.push(convertToSuggestion(product));
+            }
           }
         }
-        console.log(`[SUGGESTIONS] Added ${suggestions.length} text-based suggestions`);
+        console.log(`[SUGGESTIONS] Added ${suggestions.length} distributed text-based suggestions`);
       } else {
         console.log('[SUGGESTIONS] No text results to process');
       }
@@ -207,15 +255,21 @@ export async function GET(request: NextRequest) {
           }
 
           if (semanticResults && !semanticError) {
-            console.log(`[SUGGESTIONS] Processing ${semanticResults.length} semantic results`);
-            for (const product of semanticResults as ProductRow[]) {
-              if (suggestions.length >= limit) break;
-              if (!seenProductIds.has(product.product_id)) {
-                seenProductIds.add(product.product_id);
-                suggestions.push(convertToSuggestion(product));
+            console.log(`[SUGGESTIONS] Processing ${semanticResults.length} semantic results with distribution`);
+            const remainingSlots = limit - suggestions.length;
+            const distributedSemanticResults = distributeResultsBySupermarket(semanticResults as ProductRow[], remainingSlots);
+            
+            for (const [supermarket, products] of Object.entries(distributedSemanticResults)) {
+              console.log(`[SUGGESTIONS] Adding ${products.length} semantic products from ${supermarket}`);
+              for (const product of products) {
+                if (suggestions.length >= limit) break;
+                if (!seenProductIds.has(product.product_id)) {
+                  seenProductIds.add(product.product_id);
+                  suggestions.push(convertToSuggestion(product));
+                }
               }
             }
-            console.log(`[SUGGESTIONS] Total suggestions after semantic search: ${suggestions.length}`);
+            console.log(`[SUGGESTIONS] Total suggestions after distributed semantic search: ${suggestions.length}`);
           }
         } else {
           console.warn('[SUGGESTIONS] Failed to generate embedding for semantic search');
