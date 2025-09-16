@@ -166,10 +166,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q') || '';
     const limit = parseInt(searchParams.get('limit') || '10'); // Increased default to 10
+    const phase = searchParams.get('phase') || 'all'; // 'regex', 'rag', or 'all'
 
-    console.log(`[SUGGESTIONS] Starting suggestions request for: "${query}", limit: ${limit}`);
+    console.log(`[SUGGESTIONS] Starting suggestions request for: "${query}", limit: ${limit}, phase: ${phase}`);
 
-    if (!query.trim() || query.length < 2) {
+    if (!query.trim() || query.length < 1) {
       console.log('[SUGGESTIONS] Query too short, returning empty array');
       return NextResponse.json([]);
     }
@@ -180,56 +181,69 @@ export async function GET(request: NextRequest) {
       const supabase = createApiClient();
       console.log('[SUGGESTIONS] Supabase client created successfully');
       
-      // Step 2: Perform regex/text search first (for quick autocomplete)
-      console.log('[SUGGESTIONS] Step 2: Performing text search');
-      const searchTerms = query.toLowerCase().split(' ');
-      console.log('[SUGGESTIONS] Search terms:', searchTerms);
-      
-      const { data: textResults, error: textError } = await supabase
-        .from('products')
-        .select('product_id, name, price, supermarket, quantity, promotion_description, image_url, product_url')
-        .or(
-          searchTerms.map(term => 
-            `name.ilike.%${term}%`
-          ).join(',')
-        )
-        .limit(Math.min(limit * 2, 20)); // Get more for better variety
-        
-      if (textError) {
-        console.error('[SUGGESTIONS] Text search error:', textError);
-        console.error('[SUGGESTIONS] Text error details:', JSON.stringify(textError, null, 2));
-      } else {
-        console.log(`[SUGGESTIONS] Text search returned ${textResults?.length || 0} results`);
-      }
-
-      console.log('[SUGGESTIONS] Step 3: Processing text search results with supermarket distribution');
       let suggestions: Suggestion[] = [];
       const seenProductIds = new Set<string>();
 
-      // Distribute results across different supermarkets
-      if (textResults && !textError) {
-        console.log(`[SUGGESTIONS] Processing ${textResults.length} text results`);
-        const distributedResults = distributeResultsBySupermarket(textResults as ProductRow[], limit);
-        console.log(`[SUGGESTIONS] Distributed results across ${Object.keys(distributedResults).length} supermarkets`);
+      // Phase 1: Regex/Text Search (always run for 'regex' or 'all' phases)
+      if (phase === 'regex' || phase === 'all') {
+        console.log('[SUGGESTIONS] Step 2: Performing regex/text search');
+        const searchTerms = query.toLowerCase().split(' ');
+        console.log('[SUGGESTIONS] Search terms:', searchTerms);
         
-        for (const [supermarket, products] of Object.entries(distributedResults)) {
-          console.log(`[SUGGESTIONS] Adding ${products.length} products from ${supermarket}`);
-          for (const product of products) {
-            if (suggestions.length >= limit) break;
-            if (!seenProductIds.has(product.product_id)) {
-              seenProductIds.add(product.product_id);
-              suggestions.push(convertToSuggestion(product));
+        const { data: textResults, error: textError } = await supabase
+          .from('products')
+          .select('product_id, name, price, supermarket, quantity, promotion_description, image_url, product_url')
+          .or(
+            searchTerms.map(term => 
+              `name.ilike.%${term}%`
+            ).join(',')
+          )
+          .limit(Math.min(limit * 2, 20)); // Get more for better variety
+          
+        if (textError) {
+          console.error('[SUGGESTIONS] Text search error:', textError);
+          console.error('[SUGGESTIONS] Text error details:', JSON.stringify(textError, null, 2));
+        } else {
+          console.log(`[SUGGESTIONS] Text search returned ${textResults?.length || 0} results`);
+        }
+
+        console.log('[SUGGESTIONS] Step 3: Processing text search results with supermarket distribution');
+
+        // Distribute results across different supermarkets
+        if (textResults && !textError) {
+          console.log(`[SUGGESTIONS] Processing ${textResults.length} text results`);
+          const distributedResults = distributeResultsBySupermarket(textResults as ProductRow[], limit);
+          console.log(`[SUGGESTIONS] Distributed results across ${Object.keys(distributedResults).length} supermarkets`);
+          
+          for (const [supermarket, products] of Object.entries(distributedResults)) {
+            console.log(`[SUGGESTIONS] Adding ${products.length} products from ${supermarket}`);
+            for (const product of products) {
+              if (suggestions.length >= limit) break;
+              if (!seenProductIds.has(product.product_id)) {
+                seenProductIds.add(product.product_id);
+                suggestions.push(convertToSuggestion(product));
+              }
             }
           }
+          console.log(`[SUGGESTIONS] Added ${suggestions.length} distributed text-based suggestions`);
+        } else {
+          console.log('[SUGGESTIONS] No text results to process');
         }
-        console.log(`[SUGGESTIONS] Added ${suggestions.length} distributed text-based suggestions`);
-      } else {
-        console.log('[SUGGESTIONS] No text results to process');
+
+        // If this is regex-only phase, return immediately
+        if (phase === 'regex') {
+          console.log(`[SUGGESTIONS] Phase 'regex' complete: returning ${suggestions.length} suggestions immediately`);
+          return NextResponse.json({
+            phase: 'regex',
+            suggestions: suggestions,
+            hasMore: suggestions.length < limit
+          });
+        }
       }
 
-      // Step 4: If we have fewer than requested, use semantic search to fill up
-      if (suggestions.length < limit) {
-        console.log(`[SUGGESTIONS] Step 4: Need more suggestions (${suggestions.length}/${limit}), trying semantic search`);
+      // Phase 2: RAG/Semantic Search (run for 'rag' or 'all' phases)
+      if ((phase === 'rag' || phase === 'all') && suggestions.length < limit) {
+        console.log(`[SUGGESTIONS] Step 4: Running RAG phase - need more suggestions (${suggestions.length}/${limit}), trying semantic search`);
         
         console.log('[SUGGESTIONS] Generating embedding for semantic search');
         const queryEmbedding = await getEmbedding(query, { type: 'query' });
@@ -242,7 +256,7 @@ export async function GET(request: NextRequest) {
             {
               query_embedding: queryEmbedding,
               match_threshold: 0.5, // Lower threshold to get more results
-              match_count: (limit - suggestions.length) * 2, // Get more for deduplication
+              match_count: 30, // Return 30 semantic products
               exclude_supermarkets: null // No filtering for suggestions
             }
           );
@@ -274,18 +288,25 @@ export async function GET(request: NextRequest) {
         } else {
           console.warn('[SUGGESTIONS] Failed to generate embedding for semantic search');
         }
-      } else {
-        console.log(`[SUGGESTIONS] Already have enough suggestions (${suggestions.length}/${limit}), skipping semantic search`);
+      } else if (phase === 'rag') {
+        console.log('[SUGGESTIONS] RAG phase requested but no embeddings needed (enough suggestions from previous phase)');
       }
 
-      console.log(`[SUGGESTIONS] Final result: returning ${suggestions.length} suggestions from database`);
+      // Return results with phase information
+      const finalPhase = phase === 'all' ? 'complete' : phase;
+      console.log(`[SUGGESTIONS] ${finalPhase} phase complete: returning ${suggestions.length} suggestions`);
       console.log('[SUGGESTIONS] Final suggestions:', suggestions.map(s => ({ 
         name: s.name, 
         store: s.store, 
         price: s.price,
         hasImage: !!s.image_url 
       })));
-      return NextResponse.json(suggestions);
+      
+      return NextResponse.json({
+        phase: finalPhase,
+        suggestions: suggestions,
+        hasMore: false
+      });
 
     } catch (dbError) {
       console.error('[SUGGESTIONS] Database error, falling back to mock data:', dbError);
@@ -303,7 +324,11 @@ export async function GET(request: NextRequest) {
       
       console.log(`[SUGGESTIONS] Returning ${filteredSuggestions.length} mock suggestions`);
       console.log('[SUGGESTIONS] Mock suggestions:', filteredSuggestions.map(s => `${s.name} ($${s.price})`));
-      return NextResponse.json(filteredSuggestions);
+      return NextResponse.json({
+        phase: 'fallback',
+        suggestions: filteredSuggestions,
+        hasMore: false
+      });
     }
 
   } catch (error) {

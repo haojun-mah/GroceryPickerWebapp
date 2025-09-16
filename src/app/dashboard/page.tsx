@@ -87,7 +87,7 @@ const GroceryPickerDashboard = () => {
     };
   }, []);
 
-  // Function to fetch suggestions and display them in search results
+  // Function to fetch suggestions with two-phase approach
   const fetchSuggestions = useCallback(async (query: string) => {
     if (query.length < 2) {
       setSearchResults([]);
@@ -99,12 +99,15 @@ const GroceryPickerDashboard = () => {
     setSearchType('suggestions');
     
     try {
-      const response = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}&limit=10`);
-      if (response.ok) {
-        const suggestions = await response.json();
+      // Phase 1: Get immediate regex results
+      console.log('🔄 Phase 1: Fetching regex results...');
+      const regexResponse = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}&limit=30&phase=regex`);
+      
+      if (regexResponse.ok) {
+        const regexData = await regexResponse.json();
         
         // Convert suggestions to GroceryItem format
-        const formattedResults: GroceryItem[] = suggestions.map((suggestion: any) => ({
+        const formatSuggestions = (suggestions: any[]) => suggestions.map((suggestion: any) => ({
           id: suggestion.id,
           name: suggestion.name,
           price: suggestion.price,
@@ -117,10 +120,36 @@ const GroceryPickerDashboard = () => {
           category: suggestion.category,
           inStock: true,
         }));
+
+        const regexResults = formatSuggestions(regexData.suggestions || []);
+        console.log(`✅ Phase 1 complete: ${regexResults.length} regex results`);
         
-        setSearchResults(formattedResults);
+        // Immediately show regex results
+        setSearchResults(regexResults);
+
+        // Phase 2: Get RAG results to completely replace regex results
+        console.log('🔄 Phase 2: Fetching enhanced RAG results...');
+        
+        // Don't set loading for second phase to avoid UI flicker
+        const ragResponse = await fetch(`/api/suggestions?q=${encodeURIComponent(query)}&limit=30&phase=rag`);
+        
+        if (ragResponse.ok) {
+          const ragData = await ragResponse.json();
+          const ragResults = formatSuggestions(ragData.suggestions || []);
+          console.log(`✅ Phase 2 complete: ${ragResults.length} RAG results`);
+          
+          // Replace regex results with ranked RAG results
+          if (ragResults.length > 0) {
+            console.log(`🎯 Replacing with RAG results: ${ragResults.length} relevance-ranked suggestions`);
+            setSearchResults(ragResults);
+          } else {
+            console.warn('No RAG results, keeping regex results');
+          }
+        } else {
+          console.warn('Phase 2 (RAG) failed, keeping regex results');
+        }
       } else {
-        console.error('Failed to fetch suggestions');
+        console.error('Failed to fetch regex suggestions');
         setSearchResults([]);
       }
     } catch (error) {

@@ -51,7 +51,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     if (isLoading) return 'Loading...';
     if (searchType === 'suggestions' && searchQuery) return `Suggestions for "${searchQuery}"`;
     if (searchType === 'search' && searchQuery) return `Search Results for "${searchQuery}"`;
-    if (searchType === 'initial') return 'Welcome to GroceryPicker';
+    if (searchType === 'initial') return 'Enter groceries to start';
     return 'Search Results';
   };
 
@@ -79,15 +79,15 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           </div>
         )}
 
-        {/* Empty state for initial load */}
-        {searchType === 'initial' && searchResults.length === 0 && !isLoading && (
+        {/* Empty state for initial load - only show when no search has been performed */}
+        {searchType === 'initial' && searchResults.length === 0 && !isLoading && !searchQuery && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🛒</div>
             <h3 className="text-xl font-semibold text-foreground mb-2">Ready to find great deals?</h3>
           </div>
         )}
 
-        {/* No results state */}
+        {/* No results state - show when search has been performed but no results found */}
         {!isLoading && searchResults.length === 0 && searchQuery && (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">🔍</div>
