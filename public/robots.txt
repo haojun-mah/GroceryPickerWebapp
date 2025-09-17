@@ -1,6 +1,17 @@
 
 User-agent: *
-Disallow: /auth/
 Allow: /
 
-Sitemap: https://shipfree.idee8.agency.com/sitemap.xml
+# Important pages for SEO
+Allow: /dashboard
+Allow: /auth/login
+Allow: /auth/register
+
+# Block API endpoints from indexing
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://grocerypicker.online/sitemap.xml
+
+# Crawl delay for polite crawling
+Crawl-delay: 1

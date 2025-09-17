@@ -1,0 +1,28 @@
+{
+  "name": "GroceryPicker - AI-Powered Smart Grocery Shopping",
+  "short_name": "GroceryPicker",
+  "description": "Revolutionary AI-powered grocery shopping platform built by Mah Hao Jun from NUS Computer Science",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "scope": "/",
+  "orientation": "portrait-primary",
+  "categories": ["shopping", "productivity", "lifestyle"],
+  "lang": "en-SG",
+  "dir": "ltr"
+}
