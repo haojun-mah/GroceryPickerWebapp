@@ -2,8 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { Play, ShoppingCart } from "lucide-react";
 import { RainbowButton } from "@/components/magicui/rainbow-button";
 
 const HeroSection = () => {

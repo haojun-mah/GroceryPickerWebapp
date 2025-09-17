@@ -22,6 +22,11 @@ export const metadata: Metadata = {
     "nus grocery picker",
     "hao jun mah"
   ],
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
