@@ -7,10 +7,10 @@ import { RainbowButton } from "@/components/magicui/rainbow-button";
 const HeroSection = () => {
   return (
     <div className="overflow-x-hidden bg-background">
-      <section className="pt-24 sm:pt-32 md:pt-40 lg:pt-48 bg-background pb-16">
-        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <section className="bg-background flex items-center justify-center" style={{ minHeight: 'calc(100vh - 4rem)' }}>
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 w-full py-8 sm:py-12">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-6 mb-16">
+            <div className="flex items-center justify-center gap-6 mb-8 sm:mb-10 md:mb-12">
               <img
                 src="/icon.png"
                 alt="GroceryPicker Logo"
@@ -34,7 +34,7 @@ const HeroSection = () => {
               of grocery prices with a single click
             </p>
 
-            <div className="px-8 pt-4 sm:items-center sm:justify-center sm:px-0 sm:space-x-5 sm:flex mt-9">
+            <div className="px-8 pt-4 sm:items-center sm:justify-center sm:px-0 sm:space-x-5 sm:flex mt-6 sm:mt-8">
               <RainbowButton
                   asChild
                   className="inline-flex items-center justify-center w-full px-12 py-5 text-3xl font-bold text-primary-foreground transition-all duration-200 bg-primary border-2 border-transparent sm:w-auto rounded-2xl hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring min-w-[280px] h-16"

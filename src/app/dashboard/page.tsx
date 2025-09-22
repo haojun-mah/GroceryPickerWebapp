@@ -9,8 +9,11 @@ const GroceryPickerDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [searchResults, setSearchResults] = useState<GroceryItem[]>([]);
+  const [previousSearchResults, setPreviousSearchResults] = useState<GroceryItem[]>([]);
+  const [previousSearchType, setPreviousSearchType] = useState<'suggestions' | 'search' | 'initial' | 'optimized'>('initial');
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [searchType, setSearchType] = useState<'suggestions' | 'search' | 'initial'>('initial');
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [searchType, setSearchType] = useState<'suggestions' | 'search' | 'initial' | 'optimized'>('initial');
 
   const addToCart = (item: GroceryItem) => {
     setCartItems(prev => {
@@ -57,21 +60,37 @@ const GroceryPickerDashboard = () => {
   const comparePrices = async (item: GroceryItem) => {
     try {
       console.log('🔍 Starting price comparison optimization for:', item.name);
-      
-      // TODO: Implement optimization algorithm
-      // This would call an API endpoint that:
-      // 1. Searches for the same or similar products across all stores
-      // 2. Runs optimization to find the best price/store combinations
-      // 3. Considers factors like distance, stock availability, bulk discounts
-      // 4. Returns optimized shopping recommendations
-      
-      // For now, show a placeholder alert
-      alert(`🔍 Price Optimization\n\nAnalyzing best deals for: ${item.name}\n\nThis feature will:\n• Compare prices across all stores\n• Factor in distance and availability\n• Suggest optimal shopping routes\n• Find bulk discount opportunities\n\n(Implementation coming soon!)`);
-      
+      // The actual optimization logic is now handled in OptimizeButton component
+      // This function can be used for any additional logic if needed
     } catch (error) {
       console.error('Price comparison failed:', error);
       alert('Failed to compare prices. Please try again.');
     }
+  };
+
+  const handleOptimizeStart = () => {
+    // Store current results before optimization
+    setPreviousSearchResults(searchResults);
+    setPreviousSearchType(searchType);
+    setIsOptimizing(true);
+    console.log('Starting optimization, stored previous results');
+  };
+
+  const handleOptimizeResults = (optimizedResults: GroceryItem[]) => {
+    // Replace current search results with optimized results
+    setSearchResults(optimizedResults);
+    setSearchType('optimized');
+    setIsOptimizing(false);
+    console.log(`Updated search results with ${optimizedResults.length} optimized items`);
+  };
+
+  const handleBackToOriginal = () => {
+    // Restore previous search results
+    setSearchResults(previousSearchResults);
+    setSearchType(previousSearchType);
+    setPreviousSearchResults([]);
+    setPreviousSearchType('initial');
+    console.log('Restored previous search results');
   };
 
   // Debounce function to limit API calls
@@ -254,7 +273,11 @@ const GroceryPickerDashboard = () => {
               searchResults={searchResults}
               onAddToCart={addToCart}
               onComparePrices={comparePrices}
+              onOptimizeResults={handleOptimizeResults}
+              onOptimizeStart={handleOptimizeStart}
+              onBackToOriginal={handleBackToOriginal}
               isLoading={isLoadingSuggestions}
+              isOptimizing={isOptimizing}
               searchType={searchType}
               searchQuery={searchQuery}
             />

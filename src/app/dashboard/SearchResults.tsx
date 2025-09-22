@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
-import { Plus, ExternalLink, BarChart3 } from "lucide-react";
+import { Plus, ExternalLink, ArrowLeft } from "lucide-react";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import OptimizeButton from "./OptimizeButton";
 
 export interface GroceryItem {
   id: string;
@@ -26,8 +27,12 @@ interface SearchResultsProps {
   searchResults: GroceryItem[];
   onAddToCart: (item: GroceryItem) => void;
   onComparePrices?: (item: GroceryItem) => void;
+  onOptimizeResults?: (results: GroceryItem[]) => void;
+  onOptimizeStart?: () => void;
+  onBackToOriginal?: () => void;
   isLoading?: boolean;
-  searchType?: 'suggestions' | 'search' | 'initial';
+  isOptimizing?: boolean;
+  searchType?: 'suggestions' | 'search' | 'initial' | 'optimized';
   searchQuery?: string;
 }
 
@@ -35,7 +40,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   searchResults, 
   onAddToCart,
   onComparePrices,
+  onOptimizeResults,
+  onOptimizeStart,
+  onBackToOriginal,
   isLoading = false,
+  isOptimizing = false,
   searchType = 'initial',
   searchQuery = ''
 }) => {
@@ -48,7 +57,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   // Get header text based on search type
   const getHeaderText = () => {
+    if (isOptimizing) return 'Finding cheapest...';
     if (isLoading) return 'Loading...';
+    if (searchType === 'optimized') return 'Cheapest Options';
     if (searchType === 'suggestions' && searchQuery) return `Suggestions for "${searchQuery}"`;
     if (searchType === 'search' && searchQuery) return `Search Results for "${searchQuery}"`;
     if (searchType === 'initial') return 'Enter groceries to start';
@@ -59,14 +70,30 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     <div className="bg-card rounded-lg border border-border">
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-foreground">{getHeaderText()}</h2>
-          {isLoading && (
+          <div className="flex items-center gap-2">
+            {searchType === 'optimized' && onBackToOriginal && (
+              <button
+                onClick={onBackToOriginal}
+                className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors"
+                aria-label="Back to original results"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+            )}
+            <h2 className="text-lg font-semibold text-foreground">{getHeaderText()}</h2>
+          </div>
+          {(isLoading || isOptimizing) && (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
           )}
         </div>
         {searchType === 'suggestions' && searchResults.length > 0 && (
           <p className="text-sm text-muted-foreground mt-1">
             Start typing to see suggestions, or press Enter to search
+          </p>
+        )}
+        {searchType === 'optimized' && (
+          <p className="text-sm text-muted-foreground mt-1">
+            Showing the 5 cheapest alternatives sorted by price
           </p>
         )}
       </div>
@@ -178,31 +205,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             
             {/* Action Buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Compare Prices Button */}
+              {/* Optimize Button */}
               {onComparePrices && (
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <button
-                      onClick={() => onComparePrices(item)}
-                      className="p-2 text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-lg transition-colors"
-                    >
-                      <BarChart3 className="w-4 h-4" />
-                    </button>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-80">
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-semibold">🔍 Price Optimization</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Compare prices across all stores and find the best deals for <strong>{item.name}</strong>.
-                      </p>
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        <div>• Search similar products across stores</div>
-                        <div>• Find bulk discount opportunities</div>
-                        <div>• List out alternative products that you can consider</div>
-                      </div>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
+                <OptimizeButton 
+                  item={item} 
+                  onOptimize={onComparePrices} 
+                  onOptimizeResults={onOptimizeResults}
+                  onOptimizeStart={onOptimizeStart}
+                />
               )}
               
               {/* Add to Cart Button */}

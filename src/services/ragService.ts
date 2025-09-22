@@ -70,7 +70,6 @@ export class RagService {
           match_threshold: matchThreshold,
           match_count: matchCount,
           exclude_supermarkets: supermarketFilter?.exclude || null,
-          include_supermarkets: supermarketFilter?.include || null,
         },
       );
 
@@ -130,10 +129,11 @@ export class RagService {
 
     try {
       // Basic vector similarity search
-      const { data, error } = await supabase.rpc('match_products_by_embedding', {
+      const { data, error } = await supabase.rpc('match_products_by_embedding_with_filter', {
         query_embedding: queryEmbedding,
         match_threshold: matchThreshold,
         match_count: matchCount,
+        exclude_supermarkets: null,
       });
 
       if (error) {
