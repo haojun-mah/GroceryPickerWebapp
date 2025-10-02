@@ -100,25 +100,26 @@ export const metadata: Metadata = {
   // Icons
   icons: {
     icon: [
-      { url: "/icon.png", sizes: "32x32", type: "image/png" },
-      { url: "/icon.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon.png?v=2", sizes: "32x32", type: "image/png" },
+      { url: "/icon.png?v=2", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico?v=2", sizes: "any", type: "image/x-icon" },
     ],
-    shortcut: "/icon.png",
+    shortcut: "/favicon.ico?v=2",
     apple: [
-      { url: "/icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/icon.png?v=2", sizes: "180x180", type: "image/png" },
     ],
     other: [
       {
         rel: "icon",
         type: "image/png",
         sizes: "192x192",
-        url: "/icon.png",
+        url: "/icon.png?v=2",
       },
       {
         rel: "icon",
         type: "image/png", 
         sizes: "512x512",
-        url: "/icon.png",
+        url: "/icon.png?v=2",
       },
     ],
   },
@@ -156,12 +157,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Favicon and Icon Links */}
-        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icon.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
+        {/* Favicon and Icon Links with Cache Busting */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png?v=2" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icon.png?v=2" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon.png?v=2" />
+        <link rel="shortcut icon" href="/favicon.ico?v=2" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#000000" />
+        <meta name="msapplication-TileColor" content="#000000" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
         
         <script
           type="application/ld+json"
